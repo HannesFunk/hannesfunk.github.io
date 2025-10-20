@@ -1,11 +1,221 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>DiRueLei Web App</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    Hallo, Welt!
+    <div class="container">
+        <h1>DiRueLei</h1>
+        
+        <!-- Loading Screen -->
+        <div id="loading" class="loading">
+            <p>Loading Pyodide and Python modules...</p>
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <p id="loading-status">Initializing...</p>
+        </div>
+        
+        <!-- Main Application -->
+        <div id="main-app" class="hidden">
+            
+            <!-- Main Page -->
+            <div id="main-page">
+                <div class="numbered-box">
+                    <div class="circle">1</div>
+                    <div class="box-content">
+                        <div class="box-title">Abgabe im Mebis-Kurs erstellen</div>
+                        <div class="box-description">Bitte mit den Einstellungen aus der Anleitung eine Abgabe im Mebis-Kurs einrichten.</div>
+                    </div>
+                    <button id ="open-instructions-btn" class="btn">Anleitung</button>
+                </div>
+
+                <div class="numbered-box">
+                    <div class="circle">2</div>
+                    <div class="box-content">
+                        <div class="box-title">QR-Codes erzeugen</div>
+                        <div class="box-description">Bitte CSV-Datei gemäß der Anleitung auswählen. QR-Codes werden dann als PDF-Datei erzeugt.</div>
+                    </div>
+                    <button class="btn" onclick="showQRGeneration()">CSV auswählen</button>
+                </div>
+
+                <div class="numbered-box">
+                    <div class="circle">3</div>
+                    <div class="box-content">
+                        <div class="box-title">LN bekleben und scannen</div>
+                        <div class="box-description">QR-Codes auf den Seiten anbringen. Empfehlung für Standardeinstellungen: nur auf Vorderseite (A4) bzw. erster Seite (A3-Bogen).</div>
+                    </div>
+                </div>
+
+                <div class="numbered-box">
+                    <div class="circle">4</div>
+                    <div class="box-content">
+                        <div class="box-title">Scan</div>
+                        <div class="box-description">Gescannte Datei(en) auswählen</div>
+                    </div>
+                    <button class="btn" onclick="showPDFScan()">Scan(s) auswählen</button>
+                </div>
+            </div>
+
+            <!-- QR Generation Page -->
+            <div id="qr-generation-page" class="hidden">
+                <h2>QR-Code Generierung</h2>
+                
+                <div class="file-upload-area">
+                    <div class="file-upload-dropzone" id="csv-dropzone">
+                        <input type="file" id="csv-file" accept=".csv" class="file-input-hidden" />
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7,10 12,15 17,10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                            </div>
+                            <div class="upload-text">
+                                <div class="upload-primary">Bewegen Sie CSV-Datei in dieses Feld (Drag&Drop)</div>
+                                <div class="upload-secondary">oder klicken Sie hier zum Durchsuchen</div>
+                            </div>
+                            <div class="file-info">
+                                <span class="file-type">CSV-Dateien</span>
+                                <span class="file-size">Maximale Dateigröße: 5 MB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-separator">
+                    <hr class="settings-divider">
+                    <h3 class="settings-title">Einstellungen</h3>
+                </div>
+
+                <div id="qr-settings" class="qr-generation-settings hidden">
+                    <div class="setting-group">
+                        <label class="setting-label">Anzahl QR-Codes pro Schüler/-in:</label>
+                        <input type="number" id="copies" value="1" min="1" max="10">
+                    </div>
+
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="checkbox-use-offset"> 
+                            Ersten QR-Code an bestimmter Position setzen
+                        </label>
+                        <div id="offset-settings" class="hidden">
+                            <label>Zeile: <input type="number" id="offset-row" value="1" min="1"></label>
+                            <label>Spalte: <input type="number" id="offset-col" value="1" min="1"></label>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="checkbox-select-students"> 
+                            Nur für bestimmte Schüler/-innen QR-Codes erstellen
+                        </label>
+                        <div id="student-selection" class="student-list hidden">
+                            <label><input type="checkbox" id="select-all" checked> Alle an-/abwählen</label>
+                            <div id="student-checkboxes"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showMainPage();">Zurück zur Hauptseite</button>
+                    <button class="btn" id="generate-qr-btn"  disabled>QR-Codes erzeugen</button>
+                </div>
+            </div>
+
+            <!-- PDF Scan Page -->
+            <div id="pdf-scan-page" class="hidden">
+                <h2>PDF Scan Einstellungen</h2>
+                
+                <div class="file-upload-area">
+                    <div class="file-upload-dropzone" id="pdf-dropzone">
+                        <input type="file" id="pdf-files" accept=".pdf" multiple class="file-input-hidden" />
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7,10 12,15 17,10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                            </div>
+                            <div class="upload-text">
+                                <div class="upload-primary">Bewegen Sie PDF-Datei(en) in dieses Feld (Drag&Drop)</div>
+                                <div class="upload-secondary">oder klicken Sie hier zum Durchsuchen</div>
+                            </div>
+                            <div class="file-info">
+                                <span class="file-type">PDF-Dateien</span>
+                                <span class="file-size">Maximale Dateigröße: 512 MB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="clear-pdf-files-btn" class="btn-link hidden" style="margin-top: 10px;">
+                    <span style="font-size: 14px; margin-right: 5px;">×</span>
+                    Alle Dateien entfernen
+                </button>
+
+                <div id="scan-settings" class="scan-options hidden">
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="two-page-scan"> 
+                            Zweiseitiger Scan
+                        </label>
+                        <div class="checkbox-explanation">
+                            Das bedeutet: Es genügt, dass sich jeweils auf der ersten von zwei Seiten ein QR-Code befindet. 
+                            Die folgende Seite ohne QR-Code wird automatisch demselben Schüler zugeordnet.
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="split-a3"> 
+                            A3-Bögen teilen
+                        </label>
+                        <div class="checkbox-explanation">
+                            Das bedeutet: A3 Seiten werden in zwei A4 Seiten geteilt. Der QR-Code muss dabei außen angebracht sein.
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="quick-and-dirty"> 
+                            Quick and dirty
+                        </label>
+                        <div class="checkbox-explanation">
+                            Das bedeutet: Auf der Folgeseite einer Seite mit QR-Code wird nur oberflächlich nach einem neuen Code gesucht.
+                        </div>
+                    </div>
+
+                    <div class="progress">
+                        <div id="scan-progress-bar" class="progress-bar"></div>
+                    </div>
+
+                    <div class="output-area" id="scan-output"></div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showMainPage()">Zurück zur Hauptseite</button>
+                    <button class="btn btn-secondary" id="download-results-btn">Zusammenfassung herunterladen</button>
+                    <button class="btn" id="process-pdf-btn">PDFs einlesen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer with Version -->
+    <footer class="footer">
+        <div class="footer-content">
+            <span class="version">DiRueLei v1.1.0, (c) Hannes Funk, 2025</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js"></script>
+    <script src="python_loader.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
