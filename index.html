@@ -5,22 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DiRueLei Web App</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Cross-Origin Isolation Headers for SharedArrayBuffer support -->
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
 </head>
 <body>
     <div class="container">
         <h1>DiRueLei</h1>
         
-        <!-- Loading Screen -->
-        <div id="loading" class="loading">
-            <p>Loading Pyodide and Python modules...</p>
-            <div class="progress">
-                <div id="progress-bar" class="progress-bar"></div>
-            </div>
-            <p id="loading-status">Initializing...</p>
-        </div>
-        
         <!-- Main Application -->
-        <div id="main-app" class="hidden">
+        <div id="main-app">
             
             <!-- Main Page -->
             <div id="main-page">
@@ -81,7 +75,6 @@
                             </div>
                             <div class="file-info">
                                 <span class="file-type">CSV-Dateien</span>
-                                <span class="file-size">Maximale Dateigröße: 5 MB</span>
                             </div>
                         </div>
                     </div>
@@ -148,7 +141,6 @@
                             </div>
                             <div class="file-info">
                                 <span class="file-type">PDF-Dateien</span>
-                                <span class="file-size">Maximale Dateigröße: 512 MB</span>
                             </div>
                         </div>
                     </div>
@@ -183,24 +175,24 @@
 
                     <div class="checkbox-group">
                         <label>
-                            <input type="checkbox" id="quick-and-dirty"> 
+                            <input type="checkbox" id="quick-and-dirty" checked> 
                             Quick and dirty
                         </label>
                         <div class="checkbox-explanation">
                             Das bedeutet: Auf der Folgeseite einer Seite mit QR-Code wird nur oberflächlich nach einem neuen Code gesucht.
                         </div>
                     </div>
-
-                    <div class="progress">
-                        <div id="scan-progress-bar" class="progress-bar"></div>
-                    </div>
-
-                    <div class="output-area" id="scan-output"></div>
                 </div>
+
+                <div class="progress">
+                    <div id="scan-progress-bar" class="progress-bar hidden"></div>
+                </div>
+
+                <div class="output-area hidden" id="scan-output"></div>
 
                 <div class="button-group">
                     <button class="btn btn-secondary" onclick="showMainPage()">Zurück zur Hauptseite</button>
-                    <button class="btn btn-secondary" id="download-results-btn">Zusammenfassung herunterladen</button>
+                    <button class="btn btn-secondary" id="download-results-btn">Zusammenfassung  öffnen</button>
                     <button class="btn" id="process-pdf-btn">PDFs einlesen</button>
                 </div>
             </div>
@@ -210,12 +202,16 @@
     <!-- Footer with Version -->
     <footer class="footer">
         <div class="footer-content">
-            <span class="version">DiRueLei v1.1.0, (c) Hannes Funk, 2025</span>
+            <span class="version">DiRueLei v2.0.1</span>
+            <span class="upload-time"></span>
+            <span class="footer-separator">•</span>
+            <span class="author">(c) Hannes Funk, 2025</span>
+            <span class="footer-separator">•</span>
+            <a href="datenschutz.html" target="_blank" class="footer-link">Datenschutzhinweise</a>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js"></script>
-    <script src="python_loader.js"></script>
+    <!-- Pyodide is now loaded only in the Web Worker -->
     <script src="app.js"></script>
 </body>
 </html>
